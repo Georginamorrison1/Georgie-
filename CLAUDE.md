@@ -6,7 +6,7 @@ This file is the authoritative reference for AI assistants (Claude Code and othe
 
 ## Repository Status
 
-This repository is currently **empty** (no source code committed). This file was created to establish conventions before development begins. All sections marked with `[TODO]` should be filled in as the project takes shape.
+Initial Airtable integration has been added. Sections marked with `[TODO]` should be filled in as the project grows.
 
 ---
 
@@ -29,34 +29,26 @@ This repository is currently **empty** (no source code committed). This file was
 
 ## Tech Stack
 
-`[TODO]` — Once source files are added, record the languages, frameworks, and libraries used here.
-
-Examples to fill in:
-
 ```
-Language:   [e.g. TypeScript / Python / Go]
-Runtime:    [e.g. Node 20 / Python 3.12]
-Framework:  [e.g. Next.js / FastAPI / Gin]
-Database:   [e.g. PostgreSQL / SQLite / None]
-Testing:    [e.g. Jest / pytest / go test]
-Linting:    [e.g. ESLint + Prettier / Ruff / golangci-lint]
-Build tool: [e.g. Vite / Poetry / Make]
+Language:   Python
+Runtime:    Python 3.10+
+Framework:  None (standalone scripts)
+Database:   Airtable (via pyairtable)
+Testing:    [TODO]
+Linting:    [TODO]
+Build tool: pip / requirements.txt
 ```
 
 ---
 
 ## Directory Structure
 
-`[TODO]` — Document the top-level layout once directories exist. Example format:
-
 ```
 Georgie-/
-├── src/            # Application source code
-├── tests/          # Test files
-├── docs/           # Documentation
-├── scripts/        # Developer utility scripts
-├── .github/        # GitHub Actions workflows
-└── CLAUDE.md       # This file
+├── airtable_client.py   # Airtable read/write client
+├── requirements.txt     # Python dependencies
+├── .env.example         # Environment variable template (do not commit .env)
+└── CLAUDE.md            # This file
 ```
 
 ---
@@ -100,23 +92,12 @@ docs: update CLAUDE.md with project structure
 
 ## Commands
 
-`[TODO]` — Fill in once a package manager and scripts are configured. Common patterns:
-
 ```bash
 # Install dependencies
-[e.g. npm install / pip install -e ".[dev]" / go mod download]
+pip install -r requirements.txt
 
-# Run the development server
-[e.g. npm run dev / uvicorn main:app --reload]
-
-# Run tests
-[e.g. npm test / pytest / go test ./...]
-
-# Lint and format
-[e.g. npm run lint / ruff check . && ruff format . / golangci-lint run]
-
-# Build for production
-[e.g. npm run build / python -m build]
+# Configure credentials
+cp .env.example .env   # then edit .env with your Airtable token and base ID
 ```
 
 ---
@@ -147,10 +128,10 @@ docs: update CLAUDE.md with project structure
 
 ## Environment Variables
 
-`[TODO]` — List required and optional environment variables once they are introduced.
-
 ```
-VAR_NAME=          # Description and whether required or optional
+AIRTABLE_API_TOKEN=    # Required. Personal access token from airtable.com/create/tokens
+AIRTABLE_BASE_ID=      # Required. Base ID from the Airtable URL (e.g. appXXXXXXXXXXXX)
+AIRTABLE_TABLE_NAME=   # Required. Table name or ID within the base
 ```
 
 Never commit `.env` files or secrets. Use `.env.example` to document the shape of configuration.
