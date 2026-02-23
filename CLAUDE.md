@@ -6,7 +6,7 @@ This file is the authoritative reference for AI assistants (Claude Code and othe
 
 ## Repository Status
 
-This repository is currently **empty** (no source code committed). This file was created to establish conventions before development begins. All sections marked with `[TODO]` should be filled in as the project takes shape.
+Initial implementation committed: HiBob + Claude HR reporting integration.
 
 ---
 
@@ -23,40 +23,36 @@ This repository is currently **empty** (no source code committed). This file was
 
 ## Project Purpose
 
-`[TODO]` — Describe what this project does, who it is for, and the problem it solves.
+Pulls HR data from the [HiBob](https://www.hibob.com/) platform and uses Claude (Anthropic) to generate natural-language reports and answer workforce questions. Targeted at HR teams and people-ops managers who want AI-powered analysis of their HiBob data without writing SQL or exporting spreadsheets.
 
 ---
 
 ## Tech Stack
 
-`[TODO]` — Once source files are added, record the languages, frameworks, and libraries used here.
-
-Examples to fill in:
-
 ```
-Language:   [e.g. TypeScript / Python / Go]
-Runtime:    [e.g. Node 20 / Python 3.12]
-Framework:  [e.g. Next.js / FastAPI / Gin]
-Database:   [e.g. PostgreSQL / SQLite / None]
-Testing:    [e.g. Jest / pytest / go test]
-Linting:    [e.g. ESLint + Prettier / Ruff / golangci-lint]
-Build tool: [e.g. Vite / Poetry / Make]
+Language:    Python 3.11+
+Runtime:     CPython
+Framework:   None (CLI script)
+Database:    None
+Testing:     pytest (not yet configured)
+Linting:     ruff (not yet configured)
+Build tool:  pip / requirements.txt
+Key deps:    anthropic, httpx, python-dotenv
 ```
 
 ---
 
 ## Directory Structure
 
-`[TODO]` — Document the top-level layout once directories exist. Example format:
-
 ```
 Georgie-/
-├── src/            # Application source code
-├── tests/          # Test files
-├── docs/           # Documentation
-├── scripts/        # Developer utility scripts
-├── .github/        # GitHub Actions workflows
-└── CLAUDE.md       # This file
+├── src/
+│   ├── hibob_client.py   # HiBob REST API wrapper + data aggregation
+│   └── reporter.py       # Claude-powered report generation (streaming)
+├── main.py               # CLI entry point (argparse)
+├── requirements.txt      # Python dependencies
+├── .env.example          # Environment variable template
+└── CLAUDE.md             # This file
 ```
 
 ---
@@ -100,23 +96,21 @@ docs: update CLAUDE.md with project structure
 
 ## Commands
 
-`[TODO]` — Fill in once a package manager and scripts are configured. Common patterns:
-
 ```bash
 # Install dependencies
-[e.g. npm install / pip install -e ".[dev]" / go mod download]
+pip install -r requirements.txt
 
-# Run the development server
-[e.g. npm run dev / uvicorn main:app --reload]
+# Copy and fill in credentials
+cp .env.example .env
 
-# Run tests
-[e.g. npm test / pytest / go test ./...]
+# Generate a headcount report by department and location
+python main.py headcount
 
-# Lint and format
-[e.g. npm run lint / ruff check . && ruff format . / golangci-lint run]
+# Generate a time-off summary (last 30 days)
+python main.py timeoff
 
-# Build for production
-[e.g. npm run build / python -m build]
+# Ask a free-form workforce question
+python main.py query "Which department has grown the most in the last quarter?"
 ```
 
 ---
@@ -147,12 +141,13 @@ docs: update CLAUDE.md with project structure
 
 ## Environment Variables
 
-`[TODO]` — List required and optional environment variables once they are introduced.
-
 ```
-VAR_NAME=          # Description and whether required or optional
+ANTHROPIC_API_KEY=          # Required. Anthropic API key (console.anthropic.com)
+HIBOB_SERVICE_USER_ID=      # Required. HiBob service user ID
+HIBOB_SERVICE_USER_TOKEN=   # Required. HiBob service user token
 ```
 
+Create a service user in HiBob at **Settings > Integrations > Service Users**.
 Never commit `.env` files or secrets. Use `.env.example` to document the shape of configuration.
 
 ---
