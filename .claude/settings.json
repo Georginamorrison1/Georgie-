@@ -1,12 +1,8 @@
 {
   "mcpServers": {
     "greenhouse": {
-      "command": "python",
-      "args": ["greenhouse_mcp.py"],
-      "env": {
-        "GREENHOUSE_API_KEY": "YOUR_GREENHOUSE_HARVEST_API_KEY",
-        "GREENHOUSE_ON_BEHALF_OF": "YOUR_GREENHOUSE_USER_ID"
-      }
+      "command": "bash",
+      "args": ["start_mcp.sh"]
     }
   }
 }
