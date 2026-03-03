@@ -329,6 +329,164 @@ def list_offices() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Search
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def search_candidates(
+    name: Optional[str] = None,
+    email: Optional[str] = None,
+    job_id: Optional[int] = None,
+    tag: Optional[str] = None,
+    per_page: int = 100,
+) -> str:
+    """Search for candidates in Greenhouse by name, email, job, or tag.
+
+    At least one of name, email, job_id, or tag must be provided.
+    Name matching is case-insensitive and checks first name, last name, and full name.
+
+    Args:
+        name: Partial or full name to search for (case-insensitive).
+        email: Exact email address to search for.
+        job_id: Return only candidates who applied to this job.
+        tag: Return only candidates with this tag.
+        per_page: How many candidates to fetch from Greenhouse before filtering (max 500). Defaults to 100.
+    """
+    if not any([name, email, job_id, tag]):
+        return json.dumps({"error": "Provide at least one of: name, email, job_id, tag"})
+
+    params: dict = {"per_page": min(per_page, 500)}
+    if email:
+        params["email"] = email
+    if job_id:
+        params["job_id"] = job_id
+    if tag:
+        params["tag"] = tag
+
+    data = _get("/candidates", params=params)
+
+    if name:
+        query = name.lower()
+        results = []
+        for c in data:
+            first = (c.get("first_name") or "").lower()
+            last = (c.get("last_name") or "").lower()
+            full = f"{first} {last}".strip()
+            if query in first or query in last or query in full:
+                results.append(c)
+        data = results
+
+    candidates = [
+        {
+            "id": c["id"],
+            "first_name": c.get("first_name"),
+            "last_name": c.get("last_name"),
+            "email_addresses": [e["value"] for e in c.get("email_addresses", [])],
+            "tags": c.get("tags", []),
+            "applications": [
+                {
+                    "id": a["id"],
+                    "job": a.get("jobs", [{}])[0].get("name") if a.get("jobs") else None,
+                    "status": a.get("status"),
+                    "stage": a.get("current_stage", {}).get("name") if a.get("current_stage") else None,
+                }
+                for a in c.get("applications", [])
+            ],
+            "created_at": c.get("created_at"),
+        }
+        for c in data
+    ]
+    return json.dumps({"count": len(candidates), "results": candidates}, indent=2)
+
+
+@mcp.tool()
+def search_jobs(
+    query: Optional[str] = None,
+    status: str = "open",
+    department_id: Optional[int] = None,
+    office_id: Optional[int] = None,
+) -> str:
+    """Search for jobs in Greenhouse by title keyword.
+
+    Args:
+        query: Keyword to search for in job titles (case-insensitive). Omit to return all jobs matching the other filters.
+        status: Filter by job status. One of 'open', 'closed', 'draft'. Defaults to 'open'.
+        department_id: Optional department ID to filter by.
+        office_id: Optional office ID to filter by.
+    """
+    params: dict = {"status": status, "per_page": 500}
+    if department_id:
+        params["department_id"] = department_id
+    if office_id:
+        params["office_id"] = office_id
+
+    data = _get("/jobs", params=params)
+
+    if query:
+        q = query.lower()
+        data = [j for j in data if q in j.get("name", "").lower()]
+
+    jobs = [
+        {
+            "id": j["id"],
+            "name": j["name"],
+            "status": j["status"],
+            "departments": [d["name"] for d in j.get("departments", [])],
+            "offices": [o["name"] for o in j.get("offices", [])],
+            "opened_at": j.get("opened_at"),
+        }
+        for j in data
+    ]
+    return json.dumps({"count": len(jobs), "results": jobs}, indent=2)
+
+
+@mcp.tool()
+def search_applications(
+    job_id: Optional[int] = None,
+    status: Optional[str] = None,
+    stage_name: Optional[str] = None,
+    per_page: int = 100,
+) -> str:
+    """Search for applications in Greenhouse, optionally filtering by job, status, or stage name.
+
+    Args:
+        job_id: Filter applications by job ID.
+        status: Filter by application status. One of 'active', 'rejected', 'hired'.
+        stage_name: Partial stage name to filter by (case-insensitive), e.g. 'phone screen', 'offer'.
+        per_page: Number of results to fetch (max 500). Defaults to 100.
+    """
+    params: dict = {"per_page": min(per_page, 500)}
+    if job_id:
+        params["job_id"] = job_id
+    if status:
+        params["status"] = status
+
+    data = _get("/applications", params=params)
+
+    if stage_name:
+        q = stage_name.lower()
+        data = [
+            a for a in data
+            if a.get("current_stage") and q in a["current_stage"].get("name", "").lower()
+        ]
+
+    applications = [
+        {
+            "id": a["id"],
+            "candidate_id": a.get("candidate_id"),
+            "status": a.get("status"),
+            "stage": a.get("current_stage", {}).get("name") if a.get("current_stage") else None,
+            "job": a.get("jobs", [{}])[0].get("name") if a.get("jobs") else None,
+            "job_id": a.get("jobs", [{}])[0].get("id") if a.get("jobs") else None,
+            "applied_at": a.get("applied_at"),
+            "rejected_at": a.get("rejected_at"),
+        }
+        for a in data
+    ]
+    return json.dumps({"count": len(applications), "results": applications}, indent=2)
+
+
+# ---------------------------------------------------------------------------
 # Users
 # ---------------------------------------------------------------------------
 
