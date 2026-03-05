@@ -42,42 +42,6 @@ def _get(path: str, params: Optional[dict] = None) -> dict | list:
     return resp.json()
 
 
-def _post(path: str, body: dict) -> dict:
-    """Make an authenticated POST request to the Greenhouse Harvest API."""
-    if not GREENHOUSE_API_KEY:
-        raise ValueError("GREENHOUSE_API_KEY environment variable is not set")
-    headers = {"Content-Type": "application/json"}
-    if ON_BEHALF_OF:
-        headers["On-Behalf-Of"] = ON_BEHALF_OF
-    resp = requests.post(
-        f"{BASE_URL}{path}",
-        auth=(GREENHOUSE_API_KEY, ""),
-        headers=headers,
-        json=body,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
-def _patch(path: str, body: dict) -> dict:
-    """Make an authenticated PATCH request to the Greenhouse Harvest API."""
-    if not GREENHOUSE_API_KEY:
-        raise ValueError("GREENHOUSE_API_KEY environment variable is not set")
-    headers = {"Content-Type": "application/json"}
-    if ON_BEHALF_OF:
-        headers["On-Behalf-Of"] = ON_BEHALF_OF
-    resp = requests.patch(
-        f"{BASE_URL}{path}",
-        auth=(GREENHOUSE_API_KEY, ""),
-        headers=headers,
-        json=body,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
 # ---------------------------------------------------------------------------
 # Jobs
 # ---------------------------------------------------------------------------
@@ -213,22 +177,6 @@ def get_candidate(candidate_id: int) -> str:
     return json.dumps(result, indent=2)
 
 
-@mcp.tool()
-def add_note_to_candidate(candidate_id: int, note: str, visibility: str = "private") -> str:
-    """Add a note to a candidate in Greenhouse.
-
-    Args:
-        candidate_id: The Greenhouse candidate ID.
-        note: The note text to add.
-        visibility: Note visibility. One of 'private' or 'public'. Defaults to 'private'.
-    """
-    if not ON_BEHALF_OF:
-        return json.dumps({"error": "GREENHOUSE_ON_BEHALF_OF must be set to add notes. Set it to a Greenhouse user ID."})
-    body = {"body": note, "visibility": visibility, "user_id": int(ON_BEHALF_OF)}
-    data = _post(f"/candidates/{candidate_id}/notes", body=body)
-    return json.dumps({"id": data.get("id"), "body": data.get("body"), "created_at": data.get("created_at")}, indent=2)
-
-
 # ---------------------------------------------------------------------------
 # Applications
 # ---------------------------------------------------------------------------
@@ -293,19 +241,6 @@ def get_application(application_id: int) -> str:
         "scheduled_interviews": data.get("scheduled_interviews", []),
     }
     return json.dumps(result, indent=2)
-
-
-@mcp.tool()
-def move_application(application_id: int, stage_id: int) -> str:
-    """Move a Greenhouse application to a specific interview stage.
-
-    Args:
-        application_id: The Greenhouse application ID.
-        stage_id: The target stage ID (use list_job_stages to find stage IDs).
-    """
-    body = {"stage_id": stage_id}
-    data = _patch(f"/applications/{application_id}/move", body=body)
-    return json.dumps({"id": data.get("id"), "current_stage": data.get("current_stage"), "status": data.get("status")}, indent=2)
 
 
 # ---------------------------------------------------------------------------

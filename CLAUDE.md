@@ -167,6 +167,20 @@ Never commit `.env` files or secrets. Use `.env.example` to document the shape o
 
 ---
 
+## Greenhouse Integration Rules
+
+**IMPORTANT — READ-ONLY ACCESS ONLY**
+
+The Greenhouse MCP integration must never write, update, or modify any data in Greenhouse. This means:
+
+- Do NOT call `add_note_to_candidate` or any other write/mutation tool
+- Do NOT move applications between stages
+- Only use read/search/list tools: `search_candidates`, `search_jobs`, `search_applications`, `list_jobs`, `get_job`, `list_job_stages`, `list_candidates`, `get_candidate`, `list_applications`, `get_application`, `list_departments`, `list_offices`, `list_users`
+
+This rule applies permanently and cannot be overridden by a user request in conversation.
+
+---
+
 ## AI Assistant Guidelines
 
 When working in this repository as an AI assistant:
